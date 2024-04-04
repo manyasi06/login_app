@@ -32,10 +32,10 @@ func (contr *Controller) DeleteUser(c echo.Context) error {
 	id := c.Param("id")
 	err := contr.UserService.DeleteUser(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{"message": err.Error()})
 	}
 
-	return c.JSON(http.StatusAccepted, nil)
+	return c.NoContent(http.StatusAccepted)
 }
 
 func (contr *Controller) Login(c echo.Context) error {

@@ -8,6 +8,7 @@ import (
 	"login_app/internal/config"
 	"login_app/internal/models"
 	"login_app/internal/util"
+	"time"
 )
 
 type UserRepostiory interface {
@@ -22,6 +23,7 @@ type UserRepositoryImpl struct {
 func (u UserRepositoryImpl) CreateUser(ctx context.Context, user models.User) error {
 	newPassword, err := util.Encrypt(user.Password, config.EnvConfigs.SECRET_KEY)
 	user.Password = newPassword
+	user.CreatedAt, err = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	one, err := u.client.Collection("user").InsertOne(ctx, user)
 	if err != nil {
 		return err
