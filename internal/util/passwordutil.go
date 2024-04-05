@@ -4,8 +4,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"github.com/golang-jwt/jwt"
+	"fmt"
 	"time"
+  "os"
+
+	"github.com/golang-jwt/jwt"
 )
 
 var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
@@ -62,4 +65,33 @@ func GenerateJWT(secret, username string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+
+func GenerateJwtEd25519(username string) (string, error) {
+
+  privateKey, err := os.ReadFile("../../test_key.pem")
+  if err != nil{
+    return "", nil
+  }
+  
+  
+  key, err := jwt.ParseEdPrivateKeyFromPEM(privateKey)
+  if err != nil {
+    return "", fmt.Errorf(fmt.Sprintf("Problem formatting the ed25519 pem file %s", err.Error()))
+  }
+
+
+  token := jwt.New(jwt.SigningMethodEdDSA)
+  claims := token.Claims.(jwt.MapClaims)
+  claims["exp"] = time.Now().Add(10 * time.Minute)
+  claims["authorized"] = true
+  claims["user"] = username
+
+  tokenString, err := token.SignedString(key)
+  if err != nil {
+    return "", err
+  }
+
+  return tokenString, nil
 }

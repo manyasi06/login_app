@@ -2,10 +2,11 @@ package controller
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
 	"login_app/internal/models"
 	"login_app/internal/services"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Controller struct {
@@ -42,6 +43,7 @@ func (contr *Controller) Login(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 	token, err := contr.LoginService.Login(c.Request().Context(), username, password)
+  fmt.Printf("token: %s\n", token)
 	c.Response().Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
