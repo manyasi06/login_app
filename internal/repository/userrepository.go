@@ -21,7 +21,10 @@ type UserRepositoryImpl struct {
 }
 
 func (u UserRepositoryImpl) CreateUser(ctx context.Context, user models.User) error {
-	newPassword, err := util.Encrypt(user.Password, config.EnvConfigs.SECRET_KEY)
+	newPassword, err := util.EncryptPassword(user.Password, config.EnvConfigs.SECRET_KEY)
+	if err != nil {
+		return err
+	}
 	user.Password = newPassword
 	user.CreatedAt, err = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	one, err := u.client.Collection("user").InsertOne(ctx, user)

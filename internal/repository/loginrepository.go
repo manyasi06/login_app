@@ -22,12 +22,12 @@ type LoginRepositoryImpl struct {
 
 func (l LoginRepositoryImpl) Login(ctx context.Context, username, password string) (string, error) {
 	var result models.User
-	err := l.Db.Collection("user").FindOne(ctx, bson.D{{"username", username}, {"password", password}}).Decode(&result)
+	err := l.Db.Collection("user").FindOne(ctx, bson.D{{"username", username}}).Decode(&result)
 	if err != nil {
 		return "", err
 	}
 	secretKey := config.EnvConfigs.SECRET_KEY
-	decrypt, err := util.Decrypt(result.Password, secretKey)
+	decrypt, err := util.DecryptPassword(result.Password, secretKey)
 	if err != nil {
 		return "", err
 	}
@@ -35,7 +35,7 @@ func (l LoginRepositoryImpl) Login(ctx context.Context, username, password strin
 		return "", errors.New("Unauthorized")
 	}
 
-	token, err := util.GenerateJWT(secretKey, username)
+	token, err := util.GenerateJWT(config.EnvConfigs.JWT_KEY, username)
 	if err != nil {
 		return "", err
 	}

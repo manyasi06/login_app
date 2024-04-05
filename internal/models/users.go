@@ -13,3 +13,11 @@ type User struct {
 	UpdatedAt time.Time          `bson:"updated_At" json:"updated_at"`
 	IsActive  bool               `bson:"is_active" json:"is_active,omitempty"`
 }
+
+type UserResponseDto struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Username  string             `bson:"username" json:"username"`
+	CreatedAt time.Time          `bson:"created_At" json:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_At" json:"updated_at"`
+	IsActive  bool               `bson:"is_active" json:"is_active,omitempty"`
+}

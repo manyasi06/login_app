@@ -22,7 +22,7 @@ func Decode(s string) ([]byte, error) {
 	return data, nil
 }
 
-func Decrypt(text, secret string) (string, error) {
+func DecryptPassword(text, secret string) (string, error) {
 	block, err := aes.NewCipher([]byte(secret))
 	if err != nil {
 		return "", err
@@ -37,7 +37,7 @@ func Decrypt(text, secret string) (string, error) {
 	return string(plainText), nil
 }
 
-func Encrypt(text, secret string) (string, error) {
+func EncryptPassword(text, secret string) (string, error) {
 	block, err := aes.NewCipher([]byte(secret))
 	if err != nil {
 		return "", err
