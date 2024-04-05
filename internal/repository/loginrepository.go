@@ -35,7 +35,7 @@ func (l LoginRepositoryImpl) Login(ctx context.Context, username, password strin
 		return "", errors.New("Unauthorized")
 	}
 
-	token, err := util.GenerateJwtEd25519(username)
+	token, err := util.GenerateJwtRSA(username)
 	if err != nil {
 		return "", err
 	}

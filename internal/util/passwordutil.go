@@ -3,10 +3,12 @@ package util
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
+	"os"
 	"time"
-  "os"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -53,7 +55,7 @@ func EncryptPassword(text, secret string) (string, error) {
 }
 
 func GenerateJWT(secret, username string) (string, error) {
-	token := jwt.New(jwt.SigningMethodEdDSA)
+	token := jwt.New(jwt.SigningMethodRS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["exp"] = time.Now().Add(10 * time.Minute)
 	claims["authorized"] = true
@@ -67,31 +69,32 @@ func GenerateJWT(secret, username string) (string, error) {
 	return tokenString, nil
 }
 
+func GenerateJwtRSA(username string) (string, error) {
 
-func GenerateJwtEd25519(username string) (string, error) {
+	privateKey, err := os.ReadFile("C:\\Users\\bryanspc\\GolandProjects\\login_app\\private.key.pem")
+	if err != nil {
+		return "", err
+	}
 
-  privateKey, err := os.ReadFile("../../test_key.pem")
-  if err != nil{
-    return "", nil
-  }
-  
-  
-  key, err := jwt.ParseEdPrivateKeyFromPEM(privateKey)
-  if err != nil {
-    return "", fmt.Errorf(fmt.Sprintf("Problem formatting the ed25519 pem file %s", err.Error()))
-  }
+	block, res := pem.Decode(privateKey)
+	if block == nil {
+		return "", fmt.Errorf(fmt.Sprintf("Problem decoding the ed25519 pem file %s", res))
+	}
 
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+	token := jwt.New(jwt.SigningMethodRS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["exp"] = time.Now().Add(10 * time.Minute)
+	claims["authorized"] = true
+	claims["user"] = username
 
-  token := jwt.New(jwt.SigningMethodEdDSA)
-  claims := token.Claims.(jwt.MapClaims)
-  claims["exp"] = time.Now().Add(10 * time.Minute)
-  claims["authorized"] = true
-  claims["user"] = username
+	tokenString, err := token.SignedString(priv)
+	if err != nil {
+		return "", err
+	}
 
-  tokenString, err := token.SignedString(key)
-  if err != nil {
-    return "", err
-  }
-
-  return tokenString, nil
+	return tokenString, nil
 }
