@@ -9,7 +9,6 @@ var EnvConfigs *envConfigs
 
 type envConfigs struct {
 	SECRET_KEY string `mapstructure:"SECRET_KEY"`
-	JWT_KEY    string `mapstructure:"JWT_KEY"`
 }
 
 func InitEnvConfigs() {
