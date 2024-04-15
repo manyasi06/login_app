@@ -43,7 +43,6 @@ func (contr *Controller) Login(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 	token, err := contr.LoginService.Login(c.Request().Context(), username, password)
-	fmt.Printf("token: %s\n", token)
 	c.Response().Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())

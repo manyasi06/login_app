@@ -3,14 +3,16 @@ package util
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
-	"os"
-	"time"
+	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/golang-jwt/jwt"
+	"login_app/internal/config"
+	"login_app/internal/models"
+	"time"
 )
 
 var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
@@ -59,7 +61,7 @@ func GenerateJWT(secret, username string) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["exp"] = time.Now().Add(10 * time.Minute)
 	claims["authorized"] = true
-	claims["user"] = username
+	claims["username"] = username
 
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
@@ -71,25 +73,33 @@ func GenerateJWT(secret, username string) (string, error) {
 
 func GenerateJwtRSA(username string) (string, error) {
 
-	privateKey, err := os.ReadFile("C:\\Users\\bryanspc\\GolandProjects\\login_app\\private.key.pem")
-	if err != nil {
-		return "", err
-	}
-
-	block, res := pem.Decode(privateKey)
+	block, res := pem.Decode(config.EnvConfigs.PRIVATE_SIGN_KEY)
 	if block == nil {
 		return "", fmt.Errorf(fmt.Sprintf("Problem decoding the ed25519 pem file %s", res))
 	}
 
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if block.Type != "RSA PRIVATE KEY" {
+		return "", fmt.Errorf("invalid RSA private key")
+	}
+
+	priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return "", err
 	}
-	token := jwt.New(jwt.SigningMethodRS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(10 * time.Minute)
-	claims["authorized"] = true
-	claims["user"] = username
+
+	if _, ok := priv.(*rsa.PrivateKey); !ok {
+		return "", fmt.Errorf("invalid RSA private key")
+	}
+
+	claims := &models.JwtTokenCustomClaims{
+		Username: username,
+		Role:     "user",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	tokenString, err := token.SignedString(priv)
 	if err != nil {
@@ -97,4 +107,12 @@ func GenerateJwtRSA(username string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func GetPublicSignKey() ([]byte, error) {
+	block, res := pem.Decode(config.EnvConfigs.PUBLIC_SIGN_KEY)
+	if block == nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Problem decoding the ed25519 pem file %s", res))
+	}
+	return block.Bytes, nil
 }
