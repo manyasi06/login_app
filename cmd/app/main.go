@@ -10,7 +10,7 @@ import (
 	"login_app/internal/db"
 	"login_app/internal/repository"
 	"login_app/internal/services"
-	"login_app/internal/util"
+	"os"
 )
 
 var (
@@ -45,7 +45,17 @@ func main() {
 			if token.Method.Alg() != jwt.SigningMethodRS256.Name {
 				return nil, ErrInvalidToken
 			}
-			return util.GetPublicSignKey()
+
+			key, err := os.ReadFile(config.EnvConfigs.PUBLIC_SIGN_KEY_PATH)
+			if err != nil {
+				return nil, err
+			}
+			pem, err := jwt.ParseRSAPublicKeyFromPEM(key)
+			if err != nil {
+				return nil, err
+			}
+
+			return pem, nil
 		},
 		//ParseTokenFunc: func(c echo.Context, auth string) (interface{}, error) {
 		//	encryptedToken := c.Request().Header.Get("Authorization")

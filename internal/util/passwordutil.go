@@ -3,11 +3,11 @@ package util
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"os"
+
 	"github.com/golang-jwt/jwt/v5"
 
 	"login_app/internal/config"
@@ -82,13 +82,14 @@ func GenerateJwtRSA(username string) (string, error) {
 		return "", fmt.Errorf("invalid RSA private key")
 	}
 
-	priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	file, err := os.ReadFile(config.EnvConfigs.PRIVATE_SIGN_KEY_PATH)
 	if err != nil {
 		return "", err
 	}
 
-	if _, ok := priv.(*rsa.PrivateKey); !ok {
-		return "", fmt.Errorf("invalid RSA private key")
+	priv, err := jwt.ParseRSAPrivateKeyFromPEM(file)
+	if err != nil {
+		return "", err
 	}
 
 	claims := &models.JwtTokenCustomClaims{

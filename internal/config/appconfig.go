@@ -45,7 +45,7 @@ func loadEnvConfigs() (config *envConfigs) {
 }
 
 func setPrivateSignKey(config *envConfigs) error {
-	privateKey, err := os.ReadFile("C:\\Users\\bryanspc\\GolandProjects\\login_app\\private.key.pem")
+	privateKey, err := os.ReadFile(config.PRIVATE_SIGN_KEY_PATH)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func setPrivateSignKey(config *envConfigs) error {
 }
 
 func setPublicSignKey(config *envConfigs) error {
-	publicKey, err := os.ReadFile("C:\\Users\\bryanspc\\GolandProjects\\login_app\\public.key.pem")
+	publicKey, err := os.ReadFile(config.PUBLIC_SIGN_KEY_PATH)
 	if err != nil {
 		return err
 	}
